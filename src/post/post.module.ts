@@ -7,6 +7,7 @@ import { PostRepository } from './post.repository';
 @Module({
   imports: [],
   controllers: [PostController], // Daftarkan "Pramusaji"
-  providers: [PostService, PostRepository], // Daftarkan "Koki" dan "Petugas Gudang"
+  providers: [PostService, PostRepository],
+  exports: [PostRepository], // Daftarkan "Koki" dan "Petugas Gudang"
 })
 export class PostModule {}

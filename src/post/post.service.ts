@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  ConflictException,
 } from '@nestjs/common';
 import { PostRepository } from './post.repository';
 
@@ -51,5 +52,34 @@ export class PostService {
     }
 
     return this.postRepository.deletePost(postId);
+  }
+
+  async likePost(userId: number, postId: number) {
+    const post = await this.postRepository.findPostById(postId);
+    if (!post) {
+      throw new NotFoundException('Post not found');
+    }
+
+    const existingLike = await this.postRepository.findLike(userId, postId);
+    if (existingLike) {
+      throw new ConflictException('You have already liked this post');
+    }
+
+    return this.postRepository.addLike(userId, postId);
+  }
+
+  async unlikePost(userId: number, postId: number) {
+    const post = await this.postRepository.findPostById(postId);
+    if (!post) {
+      throw new NotFoundException('Post not found');
+    }
+
+    const existingLike = await this.postRepository.findLike(userId, postId);
+    if (!existingLike) {
+      // Lebih tepat gunakan BadRequest karena user mencoba unlike sesuatu yg belum di-like
+      throw new ConflictException('You have not liked this post');
+    }
+
+    return this.postRepository.removeLike(userId, postId);
   }
 }

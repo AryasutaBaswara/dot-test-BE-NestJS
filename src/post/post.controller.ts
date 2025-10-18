@@ -9,6 +9,8 @@ import {
   Delete,
   UseGuards,
   ParseIntPipe,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { PostService } from './post.service';
 import { CreatePostDto } from './dto/create-post.dto';
@@ -56,5 +58,19 @@ export class PostController {
   @Delete(':id')
   remove(@GetUser() user: User, @Param('id', ParseIntPipe) id: number) {
     return this.postService.deletePost(id, user.id);
+  }
+
+  @UseGuards(AuthGuard)
+  @Post(':id/like') // POST /posts/:id/like
+  @HttpCode(HttpStatus.CREATED) // Set status code default ke 201 Created
+  like(@GetUser() user: User, @Param('id', ParseIntPipe) id: number) {
+    return this.postService.likePost(user.id, id);
+  }
+
+  @UseGuards(AuthGuard)
+  @Delete(':id/like') // DELETE /posts/:id/like
+  @HttpCode(HttpStatus.OK) // Set status code default ke 200 OK
+  unlike(@GetUser() user: User, @Param('id', ParseIntPipe) id: number) {
+    return this.postService.unlikePost(user.id, id);
   }
 }
