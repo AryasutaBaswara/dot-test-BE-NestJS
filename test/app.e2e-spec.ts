@@ -10,15 +10,25 @@ import request from 'supertest';
 import { AppModule } from './../src/app.module';
 // Impor pool dari db
 
-const db = require('../dist/db.js');
+import { Pool } from 'pg';
 
 describe('Alur Tes E2E Lengkap untuk API Blog', () => {
   let app: INestApplication;
   let token: string;
   let postId: number;
+  let testPool: Pool;
   const randomEmail = `testuser_${Date.now()}@example.com`;
 
   beforeAll(async () => {
+    // Buat instance pool KHUSUS untuk tes
+    testPool = new Pool({
+      host: process.env.DB_HOST,
+      port: Number(process.env.DB_PORT),
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME,
+    });
+
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
@@ -123,14 +133,11 @@ describe('Alur Tes E2E Lengkap untuk API Blog', () => {
 
   afterAll(async () => {
     if (app) {
-      await app.close();
+      await app.close(); // Tutup aplikasi NestJS
     }
-    if (db && db.pool && typeof db.pool.end === 'function') {
-      await db.pool.end();
-    } else {
-      console.warn(
-        'DB pool not found or could not be closed during test cleanup.',
-      );
+    if (testPool) {
+      // Gunakan pool tes kita
+      await testPool.end(); // Tutup koneksi database tes
     }
   });
 });
