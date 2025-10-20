@@ -1,5 +1,5 @@
 // src/user/user.controller.ts
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
 import { UserService } from './user.service';
 // Impor "label" DTO kita
 import { CreateUserDto } from './dto/create-user.dto';
@@ -22,7 +22,7 @@ export class UserController {
   }
 
   @Post('/login')
-  // Gunakan DTO sebagai "label" untuk body
+  @HttpCode(HttpStatus.OK)
   async login(@Body() loginUserDto: LoginUserDto) {
     return this.userService.loginUser(
       loginUserDto.email,

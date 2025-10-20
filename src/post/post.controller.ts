@@ -63,14 +63,16 @@ export class PostController {
   @UseGuards(AuthGuard)
   @Post(':id/like') // POST /posts/:id/like
   @HttpCode(HttpStatus.CREATED) // Set status code default ke 201 Created
-  like(@GetUser() user: User, @Param('id', ParseIntPipe) id: number) {
-    return this.postService.likePost(user.id, id);
+  async like(@GetUser() user: User, @Param('id', ParseIntPipe) id: number) {
+    await this.postService.likePost(user.id, id); // <-- Jalankan service (tambahkan await)
+    return { message: 'Post liked successfully' }; // <-- Return objek pesan
   }
 
   @UseGuards(AuthGuard)
   @Delete(':id/like') // DELETE /posts/:id/like
   @HttpCode(HttpStatus.OK) // Set status code default ke 200 OK
-  unlike(@GetUser() user: User, @Param('id', ParseIntPipe) id: number) {
-    return this.postService.unlikePost(user.id, id);
+  async unlike(@GetUser() user: User, @Param('id', ParseIntPipe) id: number) {
+    await this.postService.unlikePost(user.id, id); // <-- Jalankan service (tambahkan await)
+    return { message: 'Post unliked successfully' }; // <-- Return objek pesan
   }
 }
