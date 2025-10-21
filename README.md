@@ -1,102 +1,124 @@
-<<<<<<< HEAD
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Simple Blog API (NestJS Version)
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+## Cara Menjalankan Proyek
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+1.  **Clone repository ini:**
 
-## Description
+    ```bash
+    git clone https://github.com/AryasutaBaswara/dot-test-BE-NestJS.git
+    cd simple-blog-api
+    ```
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+2.  **Install dependencies:**
 
-## Project setup
+    ```bash
+    npm install
+    ```
 
-```bash
-$ npm install
-```
+3.  **Setup Database PostgreSQL:**
+    - Pastikan server PostgreSQL kamu berjalan.
+    - Buat database baru.
+    - Jalankan query SQL di bawah ini untuk membuat tabel-tabel yang dibutuhkan:
 
-## Compile and run the project
+      ```sql
+      -- Membuat tabel untuk Users
+      CREATE TABLE "User" (
+          "id" SERIAL PRIMARY KEY,
+          "email" VARCHAR(255) UNIQUE NOT NULL,
+          "password" VARCHAR(255) NOT NULL,
+          "name" VARCHAR(255)
+      );
 
-```bash
-# development
-$ npm run start
+      -- Membuat tabel untuk Posts
+      CREATE TABLE "Post" (
+          "id" SERIAL PRIMARY KEY,
+          "title" VARCHAR(255) NOT NULL,
+          "content" TEXT,
+          "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+          "authorId" INTEGER NOT NULL REFERENCES "User"(id) ON DELETE CASCADE
+      );
 
-# watch mode
-$ npm run start:dev
+      -- Membuat tabel untuk Comments
+      CREATE TABLE "Comment" (
+          "id" SERIAL PRIMARY KEY,
+          "text" TEXT NOT NULL,
+          "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+          "authorId" INTEGER NOT NULL REFERENCES "User"(id) ON DELETE CASCADE,
+          "postId" INTEGER NOT NULL REFERENCES "Post"(id) ON DELETE CASCADE
+      );
 
-# production mode
-$ npm run start:prod
-```
+      -- Membuat tabel untuk PostLikes
+      CREATE TABLE "PostLikes" (
+          "userId" INTEGER NOT NULL REFERENCES "User"(id) ON DELETE CASCADE,
+          "postId" INTEGER NOT NULL REFERENCES "Post"(id) ON DELETE CASCADE,
+          PRIMARY KEY ("userId", "postId")
+      );
+      ```
 
-## Run tests
+4.  **Setup Environment Variables:**
+    - Buat file baru bernama `.env` di folder utama proyek.
+    - Salin isi dari file `.env.example` (jika ada) atau isi manual seperti contoh di bawah:
 
-```bash
-# unit tests
-$ npm run test
+      ```env
+      # Konfigurasi Database
+      DB_HOST=localhost
+      DB_PORT=5432
+      DB_USER=postgres        # Sesuaikan dengan User DB mu
+      DB_PASSWORD=            # Sesuaikan dengan pwd DB mu
+      DB_NAME=                # Sesuaikan dengan nama DB mu
 
-# e2e tests
-$ npm run test:e2e
+      # Kunci Rahasia JWT
+      JWT_SECRET=[bebas_random]
+      ```
 
-# test coverage
-$ npm run test:cov
-```
+5.  **Jalankan Aplikasi (Mode Development):**
+    ```bash
+    npm run start:dev
+    ```
+    Server akan berjalan di `http://localhost:3000` (atau port lain jika di custom sendiri di `.env`).
 
-## Deployment
+---
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+## Arsitektur & Pola Desain (Pattern Project)
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+Proyek ini dibangun menggunakan **arsitektur modular** yang umum digunakan dalam NestJS, dengan mengikuti pola **Layered Architecture**. Setiap fitur utama (seperti `User`, `Post`, `Comment`, `Auth`) dipisahkan ke dalam modulnya sendiri (`*.module.ts`).
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
+Di dalam setiap modul fitur, kodenya dibagi lagi menjadi beberapa lapisan (layer):
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+1.  **Controller (`*.controller.ts`)**: Lapisan terluar yang bertanggung jawab menerima _request_ HTTP dan mengirimkan _response_. Lapisan ini bertindak sebagai perantara dan memanggil _Service_.
+2.  **Service (`*.service.ts`)**: Lapisan ini berisi semua **logika bisnis** aplikasi. Ia memproses data, melakukan validasi, dan berkoordinasi dengan _Repository_ untuk mengakses database.
+3.  **Repository (`*.repository.ts`)**: Lapisan yang **bertanggung jawab penuh** untuk berkomunikasi dengan database (menjalankan query SQL). Lapisan ini memisahkan logika akses data dari logika bisnis.
+4.  **DTO (`dto/*.dto.ts`)**: _Data Transfer Object_ digunakan untuk mendefinisikan bentuk data yang masuk (_request body_) dengan jelas, memastikan validasi dan _type safety_.
+5.  **Entity (`*.entity.ts`)**: Mendefinisikan struktur data atau bentuk tabel di database untuk digunakan oleh TypeScript.
 
-## Resources
+### Alasan Pemilihan Pattern
 
-Check out a few resources that may come in handy when working with NestJS:
+Saya memilih **arsitektur modular** dengan **Layered Architecture (Controller-Service-Repository)** karena:
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+- **Pemisahan Tanggung Jawab (Separation of Concerns)**: Setiap lapisan memiliki fokus yang jelas, membuat kode lebih terstruktur, mudah dibaca, dan dipahami.
+- **Mudah Dikelola (Maintainability)**: Perubahan pada satu lapisan (misalnya, mengganti query database di Repository) memiliki dampak minimal pada lapisan lain. Ini memudahkan perawatan dan pengembangan jangka panjang.
+- **Mudah Dites (Testability)**: Dengan memisahkan logika bisnis (Service) dari akses data (Repository) dan presentasi (Controller), setiap bagian dapat diuji secara terpisah (_unit testing_) dengan lebih mudah.
+- **Standar NestJS**: Ini adalah pola arsitektur yang direkomendasikan dan didukung penuh oleh NestJS, memanfaatkan fitur _Dependency Injection_ untuk menghubungkan antar lapisan secara efisien.
 
-## Support
+---
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+## Dokumentasi API (Postman)
 
-## Stay in touch
+Dokumentasi detail _endpoint_ API, _request body_, dan contoh _response_ dapat ditemukan di file koleksi Postman yang disertakan dalam repository ini: `Dot_test.postman_simple-blog.json`. Anda dapat mengimpor file ini ke aplikasi Postman Anda.
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+---
 
-## License
+## Testing
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
-=======
-# dot-test-BE-NestJS
->>>>>>> fb8e7da45a762fa1bc9b935b8e856780687ac0e6
+Proyek ini dilengkapi dengan tes End-to-End (E2E) menggunakan Jest dan Supertest. Untuk menjalankan tes:
+
+1.  Pastikan aplikasi tidak sedang berjalan.
+2.  Pastikan konfigurasi database di `.env` sudah benar dan database tes (bisa sama dengan database development) dapat diakses.
+3.  Kompilasi kode TypeScript:
+    ```bash
+    npm run build
+    ```
+4.  Jalankan skrip tes E2E:
+    ```bash
+    npm run test:e2e
+    ```
